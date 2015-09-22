@@ -1,6 +1,8 @@
 from mimetypes import guess_type
 import json
 
+from pycdstar.exception import CdstarError
+
 
 class Resource(object):
     def __init__(self, api, id=None, obj=None, **kw):
@@ -52,9 +54,12 @@ class Object(Resource):
 
     @property
     def metadata(self):
-        if not self._properties:
-            self.read()
-        return self._properties['metadata']
+        try:
+            return Metadata(self._api, id=self.id).read()
+        except CdstarError as e:
+            if e.status_code == 404:
+                return
+            raise
 
     @metadata.setter
     def metadata(self, value):
@@ -63,7 +68,6 @@ class Object(Resource):
             md.update(metadata=value)
         else:
             md.create(metadata=value)
-        self.read()
 
     @property
     def bitstreams(self):
@@ -86,15 +90,15 @@ class Metadata(Resource):
         _kw = dict(
             method=method,
             assert_status=201,
-            data=json.dumps(kw.get('metadata', {})),
+            data=json.dumps(kw['metadata']),
             headers={'content-type': 'application/json'})
         return self._api._req(self._path(), **_kw)
 
     def create(self, **kw):
-        return self._cu('post')
+        return self._cu('post', **kw)
 
     def update(self, **kw):
-        return self._cu('put')
+        return self._cu('put', **kw)
 
 
 class ACL(Resource):

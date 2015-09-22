@@ -7,15 +7,10 @@ from six import string_types
 
 from pycdstar import resource
 from pycdstar.config import Config
+from pycdstar.exception import CdstarError
 
 
 log = logging.getLogger(__name__)
-
-
-class CdstarError(Exception):
-    def __init__(self, message, error):
-        super(CdstarError, self).__init__(message)
-        self.error = error.get('error') if isinstance(error, dict) else error
 
 
 class Cdstar(object):
@@ -61,7 +56,7 @@ class Cdstar(object):
                 log.error(
                     'got HTTP %s, expected HTTP %s' % (status_code, assert_status))
                 log.error(res.text[:1000] if hasattr(res, 'text') else res)
-                raise CdstarError('Unexpected HTTP status code', res)
+                raise CdstarError('Unexpected HTTP status code', res, status_code)
         return res
 
     def get_object(self, uid=None):
