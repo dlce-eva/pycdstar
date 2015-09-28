@@ -16,14 +16,26 @@ NO_DEFAULT = NoDefault()
 
 class Config(RawConfigParser):
     def __init__(self, **kw):
-        config_dir = kw.pop('config_dir', None) or APP_DIRS.user_config_dir
-        RawConfigParser.__init__(self, kw)
+        config_file = kw.pop('cfg', None)
+        if config_file is None:
+            config_dir = APP_DIRS.user_config_dir
+            cfg_path = os.path.join(config_dir, 'config.ini')
+        else:
+            config_dir = os.path.dirname(os.path.abspath(config_file))
+            cfg_path = os.path.abspath(config_file)
 
-        cfg_path = os.path.join(config_dir, 'config.ini')
+        RawConfigParser.__init__(self)
+
         if os.path.exists(cfg_path):
             assert os.path.isfile(cfg_path)
             self.read(cfg_path)
         else:
+            self.add_section('service')
+            for opt in 'url user password'.split():
+                self.set('service', opt, kw.get(opt, '') or '')
+            self.add_section('logging')
+            self.set('logging', 'level', 'INFO')
+
             if not os.path.exists(config_dir):
                 try:
                     os.makedirs(config_dir)

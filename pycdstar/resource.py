@@ -1,8 +1,6 @@
 from mimetypes import guess_type
 import json
 
-from pycdstar.exception import CdstarError
-
 
 class Resource(object):
     def __init__(self, api, id=None, obj=None, **kw):
@@ -14,11 +12,14 @@ class Resource(object):
         if id is None:
             self.create(**kw)
 
+    def exists(self):
+        return self.read(assert_status=[200, 404], json=False).status_code != 404
+
     def create(self, **kw):
         raise NotImplementedError
 
     def read(self, **kw):
-        return self._api._req(self._path(), **kw)
+        return self._api._req(self.path, **kw)
 
     def update(self, **kw):
         raise NotImplementedError
@@ -26,13 +27,14 @@ class Resource(object):
     def delete(self):
         assert self.id
         return self._api._req(
-            self._path(), method='delete', assert_status=204, json=False)
+            self.path, method='delete', assert_status=204, json=False)
 
     @property
     def service_name(self):
         return '%ss' % self.__class__.__name__.lower()
 
-    def _path(self):
+    @property
+    def path(self):
         path = '/%s/' % self.service_name
         if self.obj:
             path += '%s' % getattr(self.obj, 'id', self.obj)
@@ -45,7 +47,7 @@ class Resource(object):
 
 class Object(Resource):
     def create(self, **kw):
-        res = self._api._req(self._path(), method='post', assert_status=201)
+        res = self._api._req(self.path, method='post', assert_status=201)
         self.id = res['uid']
 
     def read(self):
@@ -54,17 +56,14 @@ class Object(Resource):
 
     @property
     def metadata(self):
-        try:
-            return Metadata(self._api, id=self.id).read()
-        except CdstarError as e:
-            if e.status_code == 404:
-                return
-            raise
+        md = Metadata(self._api, id=self.id)
+        if md.exists():
+            return md
 
     @metadata.setter
     def metadata(self, value):
         md = Metadata(self._api, id=self.id)
-        if self.metadata is not None:
+        if md.exists():
             md.update(metadata=value)
         else:
             md.create(metadata=value)
@@ -92,7 +91,7 @@ class Metadata(Resource):
             assert_status=201,
             data=json.dumps(kw['metadata']),
             headers={'content-type': 'application/json'})
-        return self._api._req(self._path(), **_kw)
+        return self._api._req(self.path, **_kw)
 
     def create(self, **kw):
         return self._cu('post', **kw)
@@ -116,7 +115,7 @@ class ACL(Resource):
             assert_status=201,
             data=json.dumps(acl),
             headers={'content-type': 'application/json'})
-        return self._api._req(self._path(), **_kw)
+        return self._api._req(self.path, **_kw)
 
 
 class Bitstream(Resource):
@@ -133,7 +132,7 @@ class Bitstream(Resource):
                 data=f,
                 assert_status=201,
                 headers={'content-type': kw.get('mimetype', guess_type(kw['fname'])[0])})
-            return self._api._req(self._path(), **_kw)
+            return self._api._req(self.path, **_kw)
 
     def create(self, **kw):
         res = self._cu('post', **kw)

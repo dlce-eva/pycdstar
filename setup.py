@@ -44,7 +44,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            "cdstar = cdstar.cli:main"
+            "cdstar = pycdstar.cli:main"
         ]
     },
     tests_require=['nose', 'coverage', 'httmock'],

@@ -17,14 +17,20 @@ class Cdstar(object):
     """The client.
 
     """
-    def __init__(self, cfg=None, service_url=None):
+    def __init__(self, cfg=None, service_url=None, user=None, password=None):
         self.cfg = cfg or Config()
         self.service_url = service_url or self.cfg.get('service', 'url')
-        user = self.cfg.get('service', 'user', default=None)
-        password = self.cfg.get('service', 'password', default=None)
+        user = user or self.cfg.get('service', 'user', default=None)
+        password = password or self.cfg.get('service', 'password', default=None)
         self.session = requests.Session()
         if user and password:
             self.session.auth = (user, password)
+
+    def url(self, obj):
+        res = self.service_url
+        if res.endswith('/'):
+            res = res[:-1]
+        return res + getattr(obj, 'path', obj)
 
     def _req(self, path, method='get', json=True, assert_status=200, **kw):
         """Make a request to the API of an cdstar instance.
@@ -42,7 +48,7 @@ class Cdstar(object):
             kw['verify'] = False
 
         method = getattr(self.session, method.lower())
-        res = method(self.service_url + path, **kw)
+        res = method(self.url(path), **kw)
 
         status_code = res.status_code
         if json:
@@ -52,7 +58,9 @@ class Cdstar(object):
                 log.error(res.text[:1000])
                 raise
         if assert_status:
-            if status_code != assert_status:
+            if not isinstance(assert_status, (list, tuple)):
+                assert_status = [assert_status]
+            if status_code not in assert_status:
                 log.error(
                     'got HTTP %s, expected HTTP %s' % (status_code, assert_status))
                 log.error(res.text[:1000] if hasattr(res, 'text') else res)
