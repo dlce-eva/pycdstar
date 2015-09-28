@@ -16,13 +16,8 @@ NO_DEFAULT = NoDefault()
 
 class Config(RawConfigParser):
     def __init__(self, **kw):
-        config_file = kw.pop('cfg', None)
-        if config_file is None:
-            config_dir = APP_DIRS.user_config_dir
-            cfg_path = os.path.join(config_dir, 'config.ini')
-        else:
-            config_dir = os.path.dirname(os.path.abspath(config_file))
-            cfg_path = os.path.abspath(config_file)
+        cfg_path = kw.pop('cfg', os.path.join(APP_DIRS.user_config_dir, 'config.ini'))
+        cfg_path = os.path.abspath(cfg_path)
 
         RawConfigParser.__init__(self)
 
@@ -36,6 +31,7 @@ class Config(RawConfigParser):
             self.add_section('logging')
             self.set('logging', 'level', 'INFO')
 
+            config_dir = os.path.dirname(cfg_path)
             if not os.path.exists(config_dir):
                 try:
                     os.makedirs(config_dir)

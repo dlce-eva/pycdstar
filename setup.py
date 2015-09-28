@@ -47,5 +47,5 @@ setup(
             "cdstar = pycdstar.cli:main"
         ]
     },
-    tests_require=['nose', 'coverage', 'httmock'],
+    tests_require=['nose', 'coverage', 'mock==1.0', 'httmock'],
 )

@@ -1,0 +1,6 @@
+{
+  "int": 5,
+  "bool": false,
+  "list": [1, 2],
+  "string": "abcd"
+}
