@@ -1,6 +1,11 @@
 # pycdstar
 Python client library for CDStar
 
+[![codecov.io](http://codecov.io/github/clld/pycdstar/coverage.svg?branch=master)](http://codecov.io/github/clld/pycdstar?branch=master)
+[![Build Status](https://travis-ci.org/clld/pycdstar.svg?branch=master)](https://travis-ci.org/clld/pycdstar)
+[![codecov.io](http://codecov.io/github/clld/pycdstar/coverage.svg?branch=master)](http://codecov.io/github/clld/pycdstar?branch=master)
+
+
 ## Usage
 
 ```python
