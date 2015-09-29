@@ -16,7 +16,8 @@ NO_DEFAULT = NoDefault()
 
 class Config(RawConfigParser):
     def __init__(self, **kw):
-        cfg_path = kw.pop('cfg', os.path.join(APP_DIRS.user_config_dir, 'config.ini'))
+        cfg_path = kw.pop('cfg', None) \
+            or os.path.join(APP_DIRS.user_config_dir, 'config.ini')
         cfg_path = os.path.abspath(cfg_path)
 
         RawConfigParser.__init__(self)
