@@ -4,6 +4,7 @@
 """
 from __future__ import unicode_literals, print_function
 import sys
+import types
 
 from docopt import docopt
 
@@ -68,6 +69,12 @@ def main(argv=None):  # pragma: no cover
     try:
         res = cmd(
             Cdstar(cfg=cfg), docopt(cmd.doc, argv=subargs), verbose=args.get('--verbose'))
+        if isinstance(res, types.GeneratorType):
+            res = list(res)
+        if isinstance(res, list):
+            for line in res:
+                print(line)
+            res = 0
         sys.exit(res or 0)
     except:
         sys.exit(256)

@@ -51,7 +51,7 @@ def metadata(api, args, verbose=False):
 """
     obj = api.get_object(args['<URL>'].split('/')[-1])
     if not set_metadata(args['<JSON>'], obj):
-        print(json.dumps(obj.metadata.read(), indent=4))
+        return json.dumps(obj.metadata.read(), indent=4)
 
 
 @command("Delete an object.")
@@ -62,8 +62,7 @@ def delete(api, args, verbose=False):
     obj = api.get_object(args['<URL>'].split('/')[-1])
     obj.delete()
     if verbose:
-        print('deleted object at')
-        print(api.url(obj))
+        return ['deleted object at', api.url(obj)]
 
 
 @command("List bitstreams of an object.")
@@ -93,10 +92,7 @@ options:
         res = reversed(res)
 
     for r in res:
-        if verbose:
-            print('{0}\t{1}\t{2:>8}\t{3}'.format(*r))
-        else:
-            print(r[0])
+        yield '{0}\t{1}\t{2:>8}\t{3}'.format(*r) if verbose else r[0]
 
 
 @command("Create a new object uploading files from a directory as bitstreams.")
@@ -119,13 +115,13 @@ options:
 
     obj = api.get_object()
     if verbose:
-        print('object created at')
-        print(api.url(obj))
+        yield 'object created at'
+        yield api.url(obj)
 
     if set_metadata(args['--metadata'], obj):
         if verbose:
-            print('adding metadata')
-            print(api.url(obj.metadata))
+            yield 'adding metadata'
+            yield api.url(obj.metadata)
 
     for root, dirs, files in os.walk(args['<DIR>']):
         # exclude/include files
@@ -138,7 +134,7 @@ options:
         for fname in files:
             bitstream = obj.add_bitstream(fname=fname)
             if verbose:
-                print('adding bitstream')
-                print(api.url(bitstream))
+                yield 'adding bitstream'
+                yield api.url(bitstream)
 
-    print(api.url(obj))
+    yield api.url(obj)

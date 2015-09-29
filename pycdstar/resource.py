@@ -79,6 +79,10 @@ class Object(Resource):
     def add_bitstream(self, **kw):
         return Bitstream(self._api, obj=self, **kw)
 
+    @property
+    def acl(self):
+        return ACL(self._api, id=self.id)
+
 
 class Metadata(Resource):
     @property
@@ -109,7 +113,7 @@ class ACL(Resource):
         acl = self.read()
         for permission in ['manage', 'read', 'write']:
             if permission in kw:
-                acl[permission] = kw['permission']
+                acl[permission] = kw[permission]
         _kw = dict(
             method='put',
             assert_status=201,
