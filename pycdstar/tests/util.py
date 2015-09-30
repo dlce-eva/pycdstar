@@ -1,5 +1,8 @@
 # coding: utf8
 from __future__ import unicode_literals
+import os
+from unittest import TestCase
+from tempfile import NamedTemporaryFile
 
 from mock import Mock, MagicMock
 
@@ -21,3 +24,21 @@ class Response(dict):
     def __init__(self, d, status_code=200):
         self.status_code = status_code
         dict.__init__(self, d)
+
+
+class WithConfigFile(TestCase):
+    def setUp(self):
+        with NamedTemporaryFile(delete=False) as fp:
+            self.config_file = fp.name
+            fp.write(b"""
+[logging]
+level = CRITICAL
+
+[service]
+url = http://localhost:9999/
+user = user
+password = pwd
+""")
+
+    def tearDown(self):
+        os.remove(self.config_file)

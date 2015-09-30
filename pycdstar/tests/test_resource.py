@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 from unittest import TestCase
 
-from mock import MagicMock, Mock
+from mock import MagicMock
 
 from pycdstar.tests.util import test_file, get_api
 

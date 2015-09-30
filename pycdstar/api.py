@@ -54,7 +54,7 @@ class Cdstar(object):
         if json:
             try:
                 res = res.json()
-            except ValueError:  # pragma: no cover
+            except ValueError:
                 log.error(res.text[:1000])
                 raise
         if assert_status:
@@ -70,8 +70,8 @@ class Cdstar(object):
     def get_object(self, uid=None):
         return resource.Object(self, uid)
 
-    def get_collection(self, uid=None):
-        return resource.Object(self, uid, type='collection')
+    #def get_collection(self, uid=None):
+    #    return resource.Object(self, uid, type='collection')
 
     def search(self, query, limit=15, offset=0, index=None):
         params = dict(limit=limit, offset=offset)

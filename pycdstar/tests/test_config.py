@@ -4,7 +4,8 @@ import os
 from tempfile import mkdtemp
 from unittest import TestCase
 from shutil import rmtree
-from io import open
+
+from pycdstar.tests.util import WithConfigFile
 
 
 class ConfigTest(TestCase):
@@ -18,20 +19,14 @@ class ConfigTest(TestCase):
     def test_new_config(self):
         from pycdstar.config import Config
 
-
         self.assertFalse(os.path.exists(self.cfg))
         Config(cfg=self.cfg)
         self.assertTrue(os.path.exists(self.cfg))
 
+
+class Tests2(WithConfigFile):
     def test_existing_config(self):
         from pycdstar.config import Config
 
-        os.mkdir(os.path.dirname(self.cfg))
-        with open(self.cfg, 'w', encoding='utf8') as fp:
-            fp.write("""\
-[section]
-option = 12
-""")
-
-        cfg = Config(cfg=self.cfg)
-        self.assertEqual(cfg.get('section', 'option'), '12')
+        cfg = Config(cfg=self.config_file)
+        self.assertEqual(cfg.get('service', 'user'), 'user')
