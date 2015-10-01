@@ -5,6 +5,8 @@ When installing pycdstar a command line utility cdstar is installed::
 
     cdstar --help
 
+.. automodule:: pycdstar.cli
+
 
 Commands
 ~~~~~~~~

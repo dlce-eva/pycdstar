@@ -18,31 +18,31 @@ def object(**kw):
 
 class Tests(TestCase):
     def test_metadata(self):
-        from pycdstar.commands import metadata
+        from pycdstar.commands import c_metadata
 
-        res = metadata(get_api(obj=object()), args({'<URL>': 'a'}))
+        res = c_metadata(get_api(obj=object()), args({'<URL>': 'a'}))
         self.assertIn('uid', res)
-        metadata(get_api(obj=object()), args({'<URL>': 'a', '<JSON>': '{}'}))
+        c_metadata(get_api(obj=object()), args({'<URL>': 'a', '<JSON>': '{}'}))
 
     def test_delete(self):
-        from pycdstar.commands import delete
+        from pycdstar.commands import c_delete
 
-        assert delete(get_api(obj=object()), args({'<URL>': 'a'}), verbose=True)
+        assert c_delete(get_api(obj=object()), args({'<URL>': 'a'}), verbose=True)
 
     def test_ls(self):
-        from pycdstar.commands import ls
+        from pycdstar.commands import c_ls
 
-        res = ls(get_api(obj=object(bitstream=[])), args({'<URL>': 'a', '-s': True}))
+        res = c_ls(get_api(obj=object(bitstream=[])), args({'<URL>': 'a', '-s': True}))
         assert len(list(res)) == 0
-        res = ls(
+        res = c_ls(
             get_api(obj=object(bitstream=[defaultdict(lambda: 1)])),
             args({'<URL>': 'a'}, default=True))
         assert len(list(res)) == 1
 
     def test_create(self):
-        from pycdstar.commands import create
+        from pycdstar.commands import c_create
 
-        res = list(create(
+        res = list(c_create(
             get_api(),
             args({
                 '<DIR>': '.',

@@ -10,25 +10,8 @@ from datetime import datetime
 from pycdstar.util import jsonload
 
 
-def split(s, separator=','):
+def _split(s, separator=','):
     return [x.strip() for x in (s or '').split(separator) if x.strip()]
-
-
-class Command(object):
-    def __init__(self, func, desc):
-        self.name = func.__name__
-        self.desc = desc
-        self.doc = func.__doc__.format('usage: cdstar %s' % self.name)
-        self.func = func
-
-    def __call__(self, *args, **kw):
-        return self.func(*args, **kw)
-
-
-def command(desc):
-    def wrapper(func):
-        return Command(func, desc)
-    return wrapper
 
 
 def set_metadata(spec, obj):
@@ -42,10 +25,11 @@ def set_metadata(spec, obj):
     return False
 
 
-@command("Set or get metadata associated with an object.")
-def metadata(api, args, verbose=False):
+def c_metadata(api, args, verbose=False):
     """
-{0} <URL> [<JSON>]
+Set or get metadata associated with an object::
+
+    usage: cdstar metadata <URL> [<JSON>]
 
     <JSON>  Path to metadata in JSON, or JSON literal.
 """
@@ -54,10 +38,11 @@ def metadata(api, args, verbose=False):
         return json.dumps(obj.metadata.read(), indent=4)
 
 
-@command("Delete an object.")
-def delete(api, args, verbose=False):
+def c_delete(api, args, verbose=False):
     """
-{0} <URL>
+Delete an object::
+
+    usage: cdstar delete <URL>
 """
     obj = api.get_object(args['<URL>'].split('/')[-1])
     obj.delete()
@@ -65,15 +50,16 @@ def delete(api, args, verbose=False):
         return ['deleted object at', api.url(obj)]
 
 
-@command("List bitstreams of an object.")
-def ls(api, args, verbose=False):
+def c_ls(api, args, verbose=False):
     """
-{0} [options] <URL>
+List bitstreams of an object::
 
-options:
-    -t  sort by modification time, newest first
-    -s  sort by filesize, biggest first
-    -r  reverse order while sorting
+    usage: cdstar ls [options] <URL>
+
+    options:
+        -t  sort by modification time, newest first
+        -s  sort by filesize, biggest first
+        -r  reverse order while sorting
 """
     obj = api.get_object(args['<URL>'].split('/')[-1])
     res = []
@@ -95,18 +81,19 @@ options:
         yield '{0}\t{1}\t{2:>8}\t{3}'.format(*r) if verbose else r[0]
 
 
-@command("Create a new object uploading files from a directory as bitstreams.")
-def create(api, args, verbose=False):
+def c_create(api, args, verbose=False):
     """
-{0} [options] <DIR>
+Create a new object uploading files from a directory as bitstreams::
 
-options:
-    --metadata=<JSON>    Path to metadata in JSON, or JSON literal.
-    --include=<PATTERNS> comma-separated list of filename patterns to include.
-    --exclude=<PATTERNS> comma-separated list of filename patterns to exclude.
-    """
+    usage: cdstar create [options] <DIR>
+
+    options:
+        --metadata=<JSON>    Path to metadata in JSON, or JSON literal.
+        --include=<PATTERNS> comma-separated list of filename patterns to include.
+        --exclude=<PATTERNS> comma-separated list of filename patterns to exclude.
+"""
     def patterns(opt):
-        res = split(opt)
+        res = _split(opt)
         if res:
             return r'|'.join([fnmatch.translate(x) for x in res])
 
