@@ -41,7 +41,6 @@ A cdstar client::
 def main(argv=None):
     """Main entry point for the cdstar CLI."""
     args = docopt(__doc__, version=pycdstar.__version__, argv=argv, options_first=True)
-    print(args)
     subargs = [args['<command>']] + args['<args>']
 
     if args['<command>'] in ['help', None]:
