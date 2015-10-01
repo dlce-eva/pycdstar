@@ -1,4 +1,16 @@
 Using pycdstar programmatically
 -------------------------------
 
-TODO
+
+API
+~~~
+
+.. automodule:: pycdstar.api
+    :members:
+
+
+Resources
+~~~~~~~~~
+
+.. automodule:: pycdstar.resource
+    :members:
