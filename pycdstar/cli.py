@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function
-import sys
 import types
 
 from docopt import docopt
@@ -39,9 +38,10 @@ A cdstar client::
     for name, f in COMMANDS.items())
 
 
-def main(argv=None):  # pragma: no cover
+def main(argv=None):
     """Main entry point for the cdstar CLI."""
     args = docopt(__doc__, version=pycdstar.__version__, argv=argv, options_first=True)
+    print(args)
     subargs = [args['<command>']] + args['<args>']
 
     if args['<command>'] in ['help', None]:
@@ -52,13 +52,13 @@ def main(argv=None):  # pragma: no cover
             print(cmd.__doc__)
         else:
             print(__doc__)
-        sys.exit(0)
+        return 0
 
     cmd = COMMANDS.get(args['<command>'])
     if not cmd:
         print('unknown command')
         print(__doc__)
-        sys.exit(0)
+        return 0
 
     cfg = Config(**dict(
         cfg=args.pop('--cfg', None),
@@ -77,7 +77,7 @@ def main(argv=None):  # pragma: no cover
             for line in res:
                 print(line)
             res = 0
-        sys.exit(res or 0)
+        return res or 0
     except:
         # FIXME: log exception!
-        sys.exit(256)
+        return 256
