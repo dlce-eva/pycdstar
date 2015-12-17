@@ -19,7 +19,7 @@ def read(fname):
 
 setup(
     name='pycdstar',
-    version="0.1.0",
+    version="0.1.1",
     description='A python wrapper for the CDStar API',
     long_description=read("README.md"),
     author='Robert Forkel',
