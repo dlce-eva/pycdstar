@@ -70,8 +70,8 @@ class Cdstar(object):
     def get_object(self, uid=None):
         return resource.Object(self, uid)
 
-    #def get_collection(self, uid=None):
-    #    return resource.Object(self, uid, type='collection')
+    # def get_collection(self, uid=None):
+    #     return resource.Object(self, uid, type='collection')
 
     def search(self, query, limit=15, offset=0, index=None):
         params = dict(limit=limit, offset=offset)
@@ -90,12 +90,11 @@ class Cdstar(object):
             headers={'content-type': 'application/json'},
             data=json.dumps(query)))
 
+    # def landing(self):
+    #     pass
 
-    #def landing(self):
-    #    pass
+    # def accesscontrol(self):
+    #     pass
 
-    #def accesscontrol(self):
-    #    pass
-
-    #def dariah(self):
-    #    pass
+    # def dariah(self):
+    #     pass

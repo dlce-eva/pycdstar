@@ -16,11 +16,7 @@ def _split(s, separator=','):
 
 def set_metadata(spec, obj):
     if spec:
-        if os.path.isfile(spec):
-            metadata = jsonload(spec)
-        else:
-            metadata = json.loads(spec)
-        obj.metadata = metadata
+        obj.metadata = jsonload(spec) if os.path.isfile(spec) else json.loads(spec)
         return True
     return False
 

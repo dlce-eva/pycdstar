@@ -77,6 +77,6 @@ def main(argv=None):
                 print(line)
             res = 0
         return res or 0
-    except:
+    except:  # pragma: no cover
         # FIXME: log exception!
         return 256

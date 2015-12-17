@@ -30,3 +30,4 @@ class Tests2(WithConfigFile):
 
         cfg = Config(cfg=self.config_file)
         self.assertEqual(cfg.get('service', 'user'), 'user')
+        self.assertEquals(cfg.get('a', 'b', default=9), 9)
