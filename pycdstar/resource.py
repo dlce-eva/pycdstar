@@ -1,3 +1,5 @@
+import re
+import string
 from mimetypes import guess_type
 import json
 
@@ -123,22 +125,45 @@ class ACL(Resource):
 
 
 class Bitstream(Resource):
+    """Bitstreams are binary blobs (aka files) associated with an object."""
+    NAME_PATTERN = re.compile('[%s0-9_\.]+$' % string.ascii_letters)
+
     def __init__(self, api, id=None, obj=None, **kw):
+        """
+        Retrieve an existing or create a new Bitstream.
+
+        A Bitstream is created by uploading a local file, specified by its local path
+        passed as `fname` keyword argument.
+
+        :param api: An initialized Cdstar API client.
+        :param id: UID of an existing bitstream or `None` to create a new bitstream.
+        :param obj: The object the bistream is associated with.
+        :param kw: A keyword parameter `mimetype` can be passed to explicitely specify \
+        a content-type for the bitstream; a keyword parameter `name` can be passed to \
+        specify an explicit Bitstream ID; note that Bitstream IDs are limited to \
+        alphanumeric characters, underscore and dot.
+        """
         assert obj
         Resource.__init__(self, api, id=id, obj=obj, **kw)
         if 'properties' in kw:
             self._properties = kw['properties']
 
     def _cu(self, method, **kw):
+        content_type = kw.get('mimetype', guess_type(kw['fname'])[0])
+        if not content_type:
+            content_type = 'application/octet-stream'
         with open(kw['fname'], 'rb') as f:
             _kw = dict(
                 method=method,
                 data=f,
                 assert_status=201,
-                headers={'content-type': kw.get('mimetype', guess_type(kw['fname'])[0])})
+                headers={'content-type': content_type})
             return self._api._req(self.path, **_kw)
 
     def create(self, **kw):
+        if 'name' in kw:
+            assert self.NAME_PATTERN.match(kw['name'])
+            self.id = kw['name']
         res = self._cu('post', **kw)
         self.id = res['bitstreamid']
 

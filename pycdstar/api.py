@@ -14,10 +14,21 @@ log = logging.getLogger(__name__)
 
 
 class Cdstar(object):
-    """The client.
+    """The API client.
 
+    >>> api = Cdstar(service_url='http://example.org', user='user', password='pwd')
+    >>> obj = api.get_object()
     """
     def __init__(self, cfg=None, service_url=None, user=None, password=None):
+        """
+        Initialize a new client object.
+
+        :param cfg: A `pycdstar.config.Config` object or `None`.
+        :param service_url: The base URL of the cdstar service.
+        :param user: user name for HTTP basic auth.
+        :param password: password for HTTP basic auth.
+        :return:
+        """
         self.cfg = cfg or Config()
         self.service_url = service_url or self.cfg.get('service', 'url')
         user = user or self.cfg.get('service', 'user', default=None)
@@ -68,12 +79,27 @@ class Cdstar(object):
         return res
 
     def get_object(self, uid=None):
+        """
+        Retrieve an existing or newly created object.
+
+        :param uid: UID of an existing object or `None` to create a new object.
+        :return: `pycdstar.resource.Object` instance.
+        """
         return resource.Object(self, uid)
 
     # def get_collection(self, uid=None):
     #     return resource.Object(self, uid, type='collection')
 
     def search(self, query, limit=15, offset=0, index=None):
+        """
+        Query the search service.
+
+        :param query: The query.
+        :param limit: The maximal number of results to return (at most 500).
+        :param offset: Use to page through big search result sets.
+        :param index: Name of the index to search in (metadata|fulltext) or `None`.
+        :return:
+        """
         params = dict(limit=limit, offset=offset)
         if index:
             assert index in ['metadata', 'fulltext']
