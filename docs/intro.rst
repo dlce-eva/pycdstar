@@ -49,7 +49,8 @@ Logging can be configured using standard
 Notes
 =====
 
-- Coverage of the API
+- Coverage of the API: Collections, access control and dariah-specific functionality is
+  currently not supported.
 - Mutation tracking: We have not gone to the lengths described
   `elsewhere <http://variable-scope.com/posts/mutation-tracking-in-nested-json-structures-using-sqlalchemy>`_
-  to track mutation of
+  to track mutation of the `metadata` attribute of an object.
