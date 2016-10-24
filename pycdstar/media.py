@@ -149,6 +149,8 @@ class Video(File):
 
     def _ffmpeg(self, iopts, opts, suffix):
         with NamedTemporaryFile(delete=False, suffix=suffix) as fp:
+            if os.path.exists(fp.name):
+                os.remove(fp.name)
             subprocess.check_call(
                 ['ffmpeg'] + iopts + ['-i', self.path] + opts + [fp.name])
         return fp.name
