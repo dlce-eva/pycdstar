@@ -8,6 +8,7 @@ requires = [
     'requests',
     'AppDirs',
     'python-dateutil',
+    'unidecode',
 ]
 
 

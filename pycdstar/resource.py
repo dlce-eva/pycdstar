@@ -151,7 +151,7 @@ class Bitstream(Resource):
     def _cu(self, method, **kw):
         content_type = kw.get('mimetype', guess_type(kw['fname'])[0])
         if not content_type:
-            content_type = 'application/octet-stream'
+            content_type = 'application/octet-stream'  # pragma: no cover
         with open(kw['fname'], 'rb') as f:
             _kw = dict(
                 method=method,

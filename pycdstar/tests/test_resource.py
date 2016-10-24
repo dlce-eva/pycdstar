@@ -42,7 +42,7 @@ class Tests(TestCase):
             'uid': 1, 'bitstreamid': 0, 'bitstream': [{'bitstreamid': 0}]})
         obj = Object(api)
         self.assertEquals(len(obj.bitstreams), 1)
-        bs = obj.add_bitstream(fname=test_file('test.json'))
+        bs = obj.add_bitstream(fname=test_file('test.json'), name='test.json')
         self.assertIsInstance(bs, Bitstream)
 
         api = get_api(ret={'uid': 1, 'read': [], 'write': [], 'manage': []})
