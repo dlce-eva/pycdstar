@@ -112,6 +112,9 @@ class File(object):
 
 
 class Audio(File):
+    """
+    Audio file handling requires the `lame` command to convert files to mp3.
+    """
     def _convert(self):
         with NamedTemporaryFile(delete=False, suffix='.mp3') as fp:
             subprocess.check_call(['lame', '--preset', 'insane', self.path, fp.name])
@@ -129,6 +132,10 @@ class Audio(File):
 
 
 class Image(File):
+    """
+    Image file handling requires ImageMagick's `convert` and `identify` commands to
+    create different resolutions of a file and determine its dimensions.
+    """
     resolutions = {
         'thumbnail': '-thumbnail 103x103^ -gravity center -extent 103x103'.split(),
         'web': '-resize 357x357'.split(),
@@ -153,6 +160,10 @@ class Image(File):
 
 
 class Video(File):
+    """
+    Video file handling requires the `ffmpeg` command to convert files to mp4 and the
+    `ffprobe` command to determine the duration of a video.
+    """
     def __init__(self, *args, **kw):
         File.__init__(self, *args, **kw)
         self._props = None
