@@ -44,6 +44,9 @@ class Tests(TestCase):
         self.assertEquals(len(obj.bitstreams), 1)
         bs = obj.add_bitstream(fname=test_file('test.json'), name='test.json')
         self.assertIsInstance(bs, Bitstream)
+        bs.update(fname=test_file('test.json'))
+        with self.assertRaises(AttributeError):
+            bs.read()  # FIXME: find way to actually test this!
 
         api = get_api(ret={'uid': 1, 'read': [], 'write': [], 'manage': []})
         obj = Object(api)

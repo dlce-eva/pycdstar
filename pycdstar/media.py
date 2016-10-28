@@ -8,6 +8,7 @@ from time import time, strftime
 import subprocess
 from tempfile import NamedTemporaryFile
 import json
+from mimetypes import guess_type
 
 from six import text_type
 from unidecode import unidecode
@@ -20,13 +21,14 @@ log = logging.getLogger(pycdstar.__name__)
 
 
 class File(object):
-    def __init__(self, path, temporary=False, name=None, type='original'):
+    def __init__(self, path, temporary=False, name=None, type='original', mimetype=None):
         assert os.path.exists(path) and os.path.isfile(path)
         self.path = path
         self.temporary = temporary
         self.bitstream_name = name or self.clean_name
         self.bitstream_type = type
         self._md5 = None
+        self.mimetype = mimetype or guess_type(self.path, strict=False)[0]
 
     @property
     def ext(self):
@@ -101,11 +103,29 @@ class File(object):
         start = time()
         log.info('{0} uploading bitstream {1} for object {2} ({3})...'.format(
             strftime('%H:%M:%S'), self.bitstream_name, obj.id, self.size_h))
-        obj.add_bitstream(fname=self.path, name=self.bitstream_name)
+        obj.add_bitstream(
+            fname=self.path, name=self.bitstream_name, mimetype=self.mimetype)
         log.info('... done in {0:.2f} secs'.format(time() - start))
         if self.temporary and os.path.exists(self.path):
             os.remove(self.path)
         return self.bitstream_name
+
+
+class Audio(File):
+    def _convert(self):
+        with NamedTemporaryFile(delete=False, suffix='.mp3') as fp:
+            subprocess.check_call(['lame', '--preset', 'insane', self.path, fp.name])
+        return fp.name
+
+    def add_bitstreams(self):
+        if self.mimetype == 'audio/mpeg':
+            # we only need an alias with correct name!
+            path = self.path
+            temporary = False
+        else:
+            path = self._convert()
+            temporary = True
+        return [File(path, name='web.mp3', type='web', temporary=temporary)]
 
 
 class Image(File):

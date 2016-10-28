@@ -8,6 +8,37 @@ from mock import Mock, patch
 from six import PY2
 
 
+class TestAudio(TestCase):
+    def setUp(self):
+        self.file = None
+
+    def _make_one(self, ext):
+        from pycdstar.media import Audio
+
+        with NamedTemporaryFile(delete=False, suffix=ext) as fp:
+            fp.write(b"""test""")
+            self.file = Audio(fp.name)
+
+    def test_create_object(self):
+        class subprocess(object):
+            def check_call(self, args):
+                with open(args[-1], 'w') as fp:
+                    fp.write(b'test' if PY2 else 'test')
+                return
+
+        self._make_one('.wav')
+        with patch('pycdstar.media.subprocess', subprocess()):
+            self.file.create_object(Mock())
+
+        self._make_one('.mp3')
+        with patch('pycdstar.media.subprocess', subprocess()):
+            self.file.create_object(Mock())
+
+    def tearDown(self):
+        if os.path.exists(self.file.path):
+            os.remove(self.file.path)
+
+
 class TestVideo(TestCase):
     def setUp(self):
         from pycdstar.media import Video
