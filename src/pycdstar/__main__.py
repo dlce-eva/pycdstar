@@ -77,6 +77,10 @@ def main(argv=None):
                 print(line)
             res = 0
         return res or 0
-    except:  # pragma: no cover
+    except:  # noqa: E722; # pragma: no cover
         # FIXME: log exception!
         return 256
+
+
+if __name__ == '__main__':  # pragma: no cover
+    main()

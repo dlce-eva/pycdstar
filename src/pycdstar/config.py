@@ -11,6 +11,7 @@ APP_DIRS = AppDirs('pycdstar')
 class NoDefault(object):
     pass
 
+
 NO_DEFAULT = NoDefault()
 
 

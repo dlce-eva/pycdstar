@@ -118,7 +118,7 @@ class Catalog(object):
                 obj.delete()
                 del self.entries[md5]
                 c += 1
-            except:  # pragma: no cover
+            except:  # noqa: E722; # pragma: no cover
                 pass
         return c
 

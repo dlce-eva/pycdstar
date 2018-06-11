@@ -94,7 +94,7 @@ class File(object):
             obj.metadata = metadata
             for file_ in bitstream_specs:
                 res[file_.bitstream_type] = file_.add_as_bitstream(obj)
-        except:
+        except:  # noqa: E722
             obj.delete()
             raise
         return obj, metadata, res

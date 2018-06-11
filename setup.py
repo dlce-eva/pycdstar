@@ -1,32 +1,14 @@
-# -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
-
-
-requires = [
-    'six',
-    'docopt',
-    'requests',
-    'AppDirs',
-    'python-dateutil',
-    'unidecode',
-]
-
-
-def read(fname):
-    with open(fname) as fp:
-        content = fp.read()
-    return content
-
 
 setup(
     name='pycdstar',
     version="0.3.2",
     description='A python wrapper for the CDStar API',
-    long_description=read("README.md"),
+    long_description=open("README.md").read(),
+    long_description_content_type='text/markdown',
     author='Robert Forkel',
     author_email='forkel@shh.mpg.de',
     url='https://github.com/clld/pycdstar',
-    install_requires=requires,
     license="Apache 2",
     zip_safe=False,
     keywords='',
@@ -42,11 +24,34 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
-    packages=find_packages(),
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     entry_points={
         'console_scripts': [
-            "cdstar = pycdstar.cli:main"
+            "cdstar = pycdstar.__main__:main"
         ]
     },
-    tests_require=['nose', 'coverage', 'mock==1.0', 'httmock'],
-)
+    install_requires=[
+        'six',
+        'docopt',
+        'requests',
+        'AppDirs',
+        'python-dateutil',
+        'unidecode',
+    ],
+    extras_require={
+        'dev': [
+            'tox',
+            'flake8',
+            'wheel',
+            'twine',
+        ],
+        'test': [
+            'mock',
+            'pytest>=3.1',
+            'pytest-mock',
+            'pytest-cov',
+            'coverage>=4.2',
+            'httmock',
+        ],
+    })

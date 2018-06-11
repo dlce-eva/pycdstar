@@ -2,7 +2,7 @@ import os
 import json
 import io
 
-from six import PY3
+from six import PY2
 
 import pycdstar
 
@@ -17,14 +17,11 @@ def jsonload(path, **kw):
     :return: The python object read from path.
     """
     _kw = {}
-    if PY3:  # pragma: no cover
+    if not PY2:
         _kw['encoding'] = 'utf8'
     with io.open(path, **_kw) as fp:
         return json.load(fp, **kw)
 
 
 def jsondumps(obj):
-    if PY3:  # pragma: no cover
-        return json.dumps(obj).encode('utf8')
-    else:
-        return json.dumps(obj)
+    return json.dumps(obj).encode('utf8') if not PY2 else json.dumps(obj)

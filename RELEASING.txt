@@ -12,7 +12,7 @@ Clone cdstar-community/pycdstar and switch to the master branch. Then:
 
 - Make sure flake8 passes::
 
-  $ flake8 --ignore=E711,E712,D100,D101,D103,D102,D301 --max-line-length=100 pycdstar
+  $ flake8 src/
 
 - Make sure docs render OK::
 
