@@ -118,7 +118,7 @@ class ACL(Resource):
                 acl[permission] = kw[permission]
         _kw = dict(
             method='put',
-            assert_status=201,
+            assert_status=200,
             data=json.dumps(acl),
             headers={'content-type': 'application/json'})
         return self._api._req(self.path, **_kw)
