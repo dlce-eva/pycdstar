@@ -55,9 +55,6 @@ class Cdstar(object):
         :return: The return value of the function of the requests library or a decoded \
         JSON object/array.
         """
-        if 1:
-            kw['verify'] = False
-
         method = getattr(self.session, method.lower())
         res = method(self.url(path), **kw)
 
