@@ -56,7 +56,7 @@ class Cdstar(object):
         JSON object/array.
         """
         if 1:
-            kw['verify'] = False
+            kw['verify'] = True
 
         method = getattr(self.session, method.lower())
         res = method(self.url(path), **kw)
