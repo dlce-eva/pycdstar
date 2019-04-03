@@ -14,16 +14,9 @@ tox -r
 flake8 src/
 ```
 
-- Make sure docs render OK::
-```shell
-cd docs
-make clean html
-```
-
 - Change version to the new version number in
   - setup.py
   - src/pycdstar/__init__.py
-  - docs/conf.py
 
 - Commit your change of the version number:
 ```shell
