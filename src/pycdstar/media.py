@@ -20,6 +20,12 @@ from pycdstar.resource import Bitstream
 log = logging.getLogger(pycdstar.__name__)
 
 
+def ensure_unicode(s):
+    if not isinstance(s, text_type):  # pragma: no cover
+        s = s.decode('utf8')
+    return s
+
+
 class File(object):
     def __init__(self, path, temporary=False, name=None, type='original', mimetype=None):
         assert os.path.exists(path) and os.path.isfile(path)
@@ -170,7 +176,7 @@ class Video(File):
 
     def _ffprobe(self):
         cmd = 'ffprobe -loglevel quiet -print_format json -show_streams'.split()
-        return json.loads(subprocess.check_output(cmd + [self.path]))
+        return json.loads(ensure_unicode(subprocess.check_output(cmd + [self.path])))
 
     @property
     def duration(self):
