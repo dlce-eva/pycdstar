@@ -1,8 +1,8 @@
 # pycdstar
 Python client library for CDStar
 
-[![Documentation Status](https://readthedocs.org/projects/pycdstar/badge/?version=latest)](http://pycdstar.readthedocs.org/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/clld/pycdstar.svg?branch=master)](https://travis-ci.org/clld/pycdstar)
+[![PyPI](https://img.shields.io/pypi/v/pycdstar.svg)](https://pypi.python.org/pypi/pycdstar)
 [![codecov.io](http://codecov.io/github/clld/pycdstar/coverage.svg?branch=master)](http://codecov.io/github/clld/pycdstar?branch=master)
 
 
