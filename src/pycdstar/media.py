@@ -153,8 +153,11 @@ class Image(File):
         return fp.name
 
     def _identify(self):
-        dim = subprocess.check_output(['identify', self.path]).split()[2]
-        return dict(zip(['height', 'width'], map(int, dim.split(b'x'))))
+        res = subprocess.check_output(['identify', self.path])
+        res = res.decode('utf8') if hasattr(res, 'decode') else res
+        assert res.startswith(self.path)
+        dim = res.replace(self.path, '').strip().split()[1]
+        return dict(zip(['height', 'width'], map(int, dim.split('x'))))
 
     def add_bitstreams(self):
         return [

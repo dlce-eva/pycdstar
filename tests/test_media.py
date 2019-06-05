@@ -47,7 +47,7 @@ def test_create_image(mocker, media_file):
             return
 
         def check_output(self, args):
-            return b'path JPEG 3x5 more'
+            return '{0} JPEG 3x5 more'.format(args[-1])
 
     mocker.patch('pycdstar.media.subprocess', subprocess())
     media_file.create_object(mocker.Mock())
