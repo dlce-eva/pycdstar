@@ -1,5 +1,3 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
 import os
 import hashlib
 from string import ascii_letters
@@ -9,8 +7,8 @@ import subprocess
 from tempfile import NamedTemporaryFile
 import json
 from mimetypes import guess_type
+import pathlib
 
-from six import text_type
 from unidecode import unidecode
 
 import pycdstar
@@ -21,31 +19,30 @@ log = logging.getLogger(pycdstar.__name__)
 
 
 def ensure_unicode(s):
-    if not isinstance(s, text_type):  # pragma: no cover
+    if not isinstance(s, str):  # pragma: no cover
         s = s.decode('utf8')
     return s
 
 
 class File(object):
     def __init__(self, path, temporary=False, name=None, type='original', mimetype=None):
-        assert os.path.exists(path) and os.path.isfile(path)
+        path = pathlib.Path(path)
+        assert path.exists() and path.is_file()
         self.path = path
         self.temporary = temporary
         self.bitstream_name = name or self.clean_name
         self.bitstream_type = type
         self._md5 = None
-        self.mimetype = mimetype or guess_type(self.path, strict=False)[0]
+        self.mimetype = mimetype or guess_type(self.path.name, strict=False)[0]
 
     @property
     def ext(self):
-        return os.path.splitext(self.path)[1].lower()
+        return self.path.suffix.lower()
 
     @property
     def clean_name(self):
         valid_characters = ascii_letters + '._0123456789'
-        _, name = os.path.split(self.path)
-        if not isinstance(name, text_type):
-            name = name.decode('utf8')  # pragma: no cover
+        name = ensure_unicode(self.path.name)
         res = ''.join([c if c in valid_characters else '_' for c in unidecode(name)])
         assert Bitstream.NAME_PATTERN.match(res)
         return res
@@ -54,14 +51,14 @@ class File(object):
     def md5(self):
         if self._md5 is None:
             self._md5 = hashlib.md5()
-            with open(self.path, "rb") as fp:
+            with self.path.open(mode="rb") as fp:
                 self._md5.update(fp.read())
             self._md5 = self._md5.hexdigest()
         return self._md5
 
     @property
     def size(self):
-        return os.stat(self.path).st_size
+        return self.path.stat().st_size
 
     @staticmethod
     def format_size(num):
@@ -112,8 +109,8 @@ class File(object):
         obj.add_bitstream(
             fname=self.path, name=self.bitstream_name, mimetype=self.mimetype)
         log.info('... done in {0:.2f} secs'.format(time() - start))
-        if self.temporary and os.path.exists(self.path):
-            os.remove(self.path)
+        if self.temporary and self.path.exists():
+            self.path.unlink()
         return self.bitstream_name
 
 
@@ -153,10 +150,9 @@ class Image(File):
         return fp.name
 
     def _identify(self):
-        res = subprocess.check_output(['identify', self.path])
-        res = res.decode('utf8') if hasattr(res, 'decode') else res
-        assert res.startswith(self.path)
-        dim = res.replace(self.path, '').strip().split()[1]
+        res = ensure_unicode(subprocess.check_output(['identify', self.path]))
+        assert res.startswith(str(self.path))
+        dim = res.replace(str(self.path), '').strip().split()[1]
         return dict(zip(['height', 'width'], map(int, dim.split('x'))))
 
     def add_bitstreams(self):

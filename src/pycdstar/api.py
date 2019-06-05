@@ -3,7 +3,6 @@ import logging
 import json
 
 import requests
-from six import string_types
 
 from pycdstar import resource
 from pycdstar.config import Config
@@ -101,7 +100,7 @@ class Cdstar(object):
         if index:
             assert index in ['metadata', 'fulltext']
             params['indexselection'] = index
-        if isinstance(query, string_types):
+        if isinstance(query, str):
             query = {"query_string": {"query": query}}
         # elif isinstance(query, ElasticQuery):
         #    query = query.dict()

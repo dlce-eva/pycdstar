@@ -1,13 +1,10 @@
-# coding: utf8
-from __future__ import unicode_literals
 import json
 import fnmatch
 import os
 import os.path
 import re
+import pathlib
 from datetime import datetime
-
-from pycdstar.util import jsonload
 
 
 def _split(s, separator=','):
@@ -16,7 +13,12 @@ def _split(s, separator=','):
 
 def set_metadata(spec, obj):
     if spec:
-        obj.metadata = jsonload(spec) if os.path.isfile(spec) else json.loads(spec)
+        spec_as_path = pathlib.Path(spec)
+        if spec_as_path.exists() and spec_as_path.is_file():
+            with spec_as_path.open(encoding='utf8') as fp:
+                obj.metadata = json.load(fp)
+        else:
+            obj.metadata = json.loads(spec)
         return True
     return False
 

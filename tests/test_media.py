@@ -1,7 +1,3 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
-import os
-
 import pytest
 from pycdstar.media import Audio, Video, Image, File
 
@@ -71,7 +67,7 @@ def test_create_object(media_file, mocker):
     media_file.temporary = True
     obj, md, bitstreams = media_file.create_object(mocker.Mock())
     assert 'original' in bitstreams
-    assert not os.path.exists(media_file.path)
+    assert not media_file.path.exists()
 
 
 def test_create_object_fail(media_file, mocker):

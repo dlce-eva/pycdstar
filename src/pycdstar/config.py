@@ -1,9 +1,8 @@
 import os
 import logging
+from configparser import RawConfigParser
 
 from appdirs import AppDirs
-from six.moves.configparser import RawConfigParser
-
 
 APP_DIRS = AppDirs('pycdstar')
 

@@ -1,5 +1,3 @@
-# coding: utf8
-from __future__ import unicode_literals
 from collections import defaultdict
 
 from pycdstar.resource import Object
@@ -20,12 +18,17 @@ def object(api_factory, **kw):
     return Object(api_factory(ret=Response(kw)))
 
 
-def test_metadata(api_factory):
+def test_metadata(api_factory, tmpdir):
     from pycdstar.commands import c_metadata
 
     res = c_metadata(api_factory(obj=object(api_factory)), args({'<URL>': 'a'}))
     assert 'uid' in res
     c_metadata(api_factory(obj=object(api_factory)), args({'<URL>': 'a', '<JSON>': '{}'}))
+
+    md = tmpdir.join('md.json')
+    md.write_text('{"attr": "value"}', encoding='utf8')
+    assert c_metadata(
+        api_factory(obj=object(api_factory)), args({'<URL>': 'a', '<JSON>': str(md)})) is None
 
 
 def test_delete(api_factory):

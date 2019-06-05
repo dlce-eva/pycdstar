@@ -1,7 +1,4 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
 import os
-from tempfile import NamedTemporaryFile
 from time import sleep
 
 import pytest
@@ -16,7 +13,6 @@ def catalog_file(tmpdir):
     return str(c)
 
 
-
 @pytest.fixture
 def catalog(catalog_file):
     from pycdstar.catalog import Catalog
@@ -24,7 +20,7 @@ def catalog(catalog_file):
     return Catalog(catalog_file)
 
 
-def test_context_manager(catalog, catalog_file):
+def test_context_manager(catalog_file):
     from pycdstar.catalog import Catalog, filter_hidden
 
     mtime = os.stat(catalog_file).st_mtime

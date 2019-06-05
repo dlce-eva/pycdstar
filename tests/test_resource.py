@@ -1,7 +1,3 @@
-# coding: utf8
-from __future__ import unicode_literals
-import os
-
 import pytest
 
 from pycdstar.resource import Resource, Object, Bitstream, ACL

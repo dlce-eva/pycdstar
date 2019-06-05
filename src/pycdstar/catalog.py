@@ -1,24 +1,34 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
 import os
 from collections import OrderedDict, defaultdict
 import json
 from mimetypes import guess_type
+import pathlib
 
-from six import PY3
-
-from pycdstar.util import jsonload
 from pycdstar.media import File, Video, Image
 
 
 def filter_hidden(p):
-    return not os.path.basename(p).startswith('.')
+    return not p.stem.startswith('.')
+
+
+def iter_files(path):
+    path = pathlib.Path(path)
+    assert path.exists()
+    if path.is_file():
+        yield path
+    elif path.is_dir():
+        for dirname, subdirs, files in os.walk(str(path)):
+            for fname in files:
+                yield pathlib.Path(dirname) / fname
 
 
 class Catalog(object):
     def __init__(self, path):
-        self.path = path
-        self.entries = jsonload(self.path) if os.path.exists(self.path) else {}
+        self.path = pathlib.Path(path)
+        self.entries = {}
+        if self.path.exists():
+            with self.path.open(encoding='utf8') as fp:
+                self.entries = json.load(fp)
 
     def __enter__(self):
         return self
@@ -36,13 +46,8 @@ class Catalog(object):
 
     def stat(self, path, verbose=False):
         stats = defaultdict(list)
-        assert os.path.exists(path)
-        if os.path.isfile(path):
-            self.update_stat(path, stats)
-        elif os.path.isdir(path):
-            for dirpath, dirnames, filenames in os.walk(path):
-                for fname in filenames:
-                    self.update_stat(os.path.join(dirpath, fname), stats)
+        for fname in iter_files(path):
+            self.update_stat(fname, stats)
         insize, infiles, indistinct = 0, 0, 0
         outsize, outfiles, outdistinct = 0, 0, 0
         for md5, files in stats.items():
@@ -75,22 +80,18 @@ class Catalog(object):
 
     def upload(self, path, api, metadata, filter_=None):
         start = len(self)
-        if os.path.isfile(path):
-            self.upload_one(path, api, metadata, filter_=filter_)
-        elif os.path.isdir(path):
-            for dirpath, dirnames, filenames in os.walk(path):
-                for fname in filenames:
-                    self.upload_one(os.path.join(dirpath, fname), api, metadata, filter_=filter_)
+        for fname in iter_files(path):
+            self.upload_one(fname, api, metadata, filter_=filter_)
         return len(self) - start
 
     def upload_one(self, path, api, metadata, filter_=None):
         if filter_ and not filter_(path):
             return
 
-        if path.endswith('.MOD'):
+        if path.suffix == '.MOD':
             cls = Video  # pragma: no cover
         else:
-            mimetype = (guess_type(path)[0] or '').split('/')[0]
+            mimetype = (guess_type(path.name)[0] or '').split('/')[0]
             cls = {'video': Video, 'image': Image}.get(mimetype, File)
         file_ = cls(path)
         if file_.md5 not in self.entries:
@@ -130,8 +131,5 @@ class Catalog(object):
         for md5 in sorted(self.entries.keys()):
             ordered[md5] = OrderedDict([i for i in sorted(self.entries[md5].items())])
 
-        _kw = dict(mode='w')
-        if PY3:  # pragma: no cover
-            _kw['encoding'] = 'utf8'
-        with open(self.path, **_kw) as fp:
+        with self.path.open(mode='w', encoding='utf8') as fp:
             return json.dump(ordered, fp, indent=4)

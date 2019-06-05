@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pycdstar',
-    version="0.4.4.dev0",
+    version="1.0.0.dev0",
     description='A python wrapper for the CDStar API',
     long_description=open("README.md").read(),
     long_description_content_type='text/markdown',
@@ -17,10 +17,10 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
@@ -32,7 +32,6 @@ setup(
         ]
     },
     install_requires=[
-        'six',
         'docopt',
         'requests',
         'AppDirs',
