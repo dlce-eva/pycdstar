@@ -107,7 +107,7 @@ class File(object):
         log.info('{0} uploading bitstream {1} for object {2} ({3})...'.format(
             strftime('%H:%M:%S'), self.bitstream_name, obj.id, self.size_h))
         obj.add_bitstream(
-            fname=self.path, name=self.bitstream_name, mimetype=self.mimetype)
+            fname=str(self.path), name=self.bitstream_name, mimetype=self.mimetype)
         log.info('... done in {0:.2f} secs'.format(time() - start))
         if self.temporary and self.path.exists():
             self.path.unlink()
@@ -120,7 +120,7 @@ class Audio(File):
     """
     def _convert(self):
         with NamedTemporaryFile(delete=False, suffix='.mp3') as fp:
-            subprocess.check_call(['lame', '--preset', 'insane', self.path, fp.name])
+            subprocess.check_call(['lame', '--preset', 'insane', str(self.path), fp.name])
         return fp.name
 
     def add_bitstreams(self):
@@ -146,11 +146,11 @@ class Image(File):
 
     def _convert(self, opts):
         with NamedTemporaryFile(delete=False, suffix='.jpg') as fp:
-            subprocess.check_call(['convert', self.path] + opts + [fp.name])
+            subprocess.check_call(['convert', str(self.path)] + opts + [fp.name])
         return fp.name
 
     def _identify(self):
-        res = ensure_unicode(subprocess.check_output(['identify', self.path]))
+        res = ensure_unicode(subprocess.check_output(['identify', str(self.path)]))
         assert res.startswith(str(self.path))
         dim = res.replace(str(self.path), '').strip().split()[1]
         return dict(zip(['height', 'width'], map(int, dim.split('x'))))
@@ -175,7 +175,7 @@ class Video(File):
 
     def _ffprobe(self):
         cmd = 'ffprobe -loglevel quiet -print_format json -show_streams'.split()
-        return json.loads(ensure_unicode(subprocess.check_output(cmd + [self.path])))
+        return json.loads(ensure_unicode(subprocess.check_output(cmd + [str(self.path)])))
 
     @property
     def duration(self):
@@ -188,7 +188,7 @@ class Video(File):
             if os.path.exists(fp.name):
                 os.remove(fp.name)
             subprocess.check_call(
-                ['ffmpeg'] + iopts + ['-i', self.path] + opts + [fp.name])
+                ['ffmpeg'] + iopts + ['-i', str(self.path)] + opts + [fp.name])
         return fp.name
 
     def add_bitstreams(self):
