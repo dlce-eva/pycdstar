@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pycdstar',
-    version="1.0.1.dev0",
+    version="1.0.1",
     description='A python wrapper for the CDStar API',
     long_description=open("README.md").read(),
     long_description_content_type='text/markdown',
