@@ -3,7 +3,7 @@ from time import sleep
 
 import pytest
 
-from mock import Mock
+from unittest.mock import Mock
 
 
 @pytest.fixture
