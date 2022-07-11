@@ -126,7 +126,7 @@ class ACL(Resource):
 
 class Bitstream(Resource):
     """Bitstreams are binary blobs (aka files) associated with an object."""
-    NAME_PATTERN = re.compile('[%s0-9_\.]+$' % string.ascii_letters)
+    NAME_PATTERN = re.compile(r'[%s0-9_\.]+$' % string.ascii_letters)
 
     def __init__(self, api, id=None, obj=None, **kw):
         """
