@@ -5,7 +5,8 @@ from collections import OrderedDict, defaultdict
 import json
 from mimetypes import guess_type
 import pathlib
-from typing import Union, Any
+import dataclasses
+from typing import Union, Any, Optional, Callable
 
 from clldutils.path import walk
 
@@ -13,11 +14,23 @@ from pycdstar.api import Cdstar
 from pycdstar.media import File, Video, Image
 
 
-def filter_hidden(p):
+@dataclasses.dataclass
+class Stats:
+    size: int = 0
+    files: int = 0
+    distinct: int = 0
+
+    def __str__(self):
+        return f'{File.format_size(self.size)} in {self.files} files ({self.distinct} distinct)'
+
+
+def filter_hidden(p: pathlib.Path) -> bool:
+    """Predefined filter for hidden files."""
     return not p.stem.startswith('.')
 
 
-def iter_files(path):
+def iter_files(path: Union[str, pathlib.Path]):
+    """Yield files from path."""
     path = pathlib.Path(path)
     assert path.exists()
     if path.is_file():
@@ -55,6 +68,7 @@ class Catalog:
 
     @property
     def size_h(self) -> str:
+        """Human-readable size of the catalog."""
         return File.format_size(self.size)
 
     def stat(self, path, verbose=False):
@@ -62,27 +76,27 @@ class Catalog:
         stats: dict[str, list[tuple[pathlib.Path, int, bool]]] = defaultdict(list)
         for fname in iter_files(path):
             self.update_stat(fname, stats)
-        insize, infiles, indistinct = 0, 0, 0
-        outsize, outfiles, outdistinct = 0, 0, 0
-        for md5, files in stats.items():
-            for i, (path, size, in_catalog) in enumerate(files):
+        instats = Stats()
+        outstats = Stats()
+        for _, files in stats.items():
+            for i, (p, size, in_catalog) in enumerate(files):
                 if i == 0:
                     if in_catalog:
-                        indistinct += 1
+                        instats.distinct += 1
                     else:
-                        outdistinct += 1
+                        outstats.distinct += 1
                         if verbose:
-                            print(path)
+                            print(p)
 
                 if in_catalog:
-                    insize += size
-                    infiles += 1
+                    instats.size += size
+                    instats.files += 1
                 else:
-                    outsize += size
-                    outfiles += 1
+                    outstats.size += size
+                    outstats.files += 1
 
-        print(f'uploaded: {File.format_size(insize)} in {infiles} files ({indistinct} distinct)')
-        print(f'todo: {File.format_size(outsize)} in {outfiles} files ({outdistinct} distinct)')
+        print(f'uploaded: {instats}')
+        print(f'todo: {outstats}')
         return stats
 
     def update_stat(
@@ -94,13 +108,26 @@ class Catalog:
         md5 = file_.md5
         stats[md5].append((file_.path, file_.size, md5 in self.entries))
 
-    def upload(self, path, api: Cdstar, metadata, filter_=None):
+    def upload(
+            self,
+            path: Union[str, pathlib.Path],
+            api: Cdstar,
+            metadata: dict,
+            filter_: Optional[Callable[[Union[str, pathlib.Path]], bool]] = None,
+    ) -> int:
+        """Upload files from path."""
         start = len(self)
         for fname in iter_files(path):
             self.upload_one(fname, api, metadata, filter_=filter_)
         return len(self) - start
 
-    def upload_one(self, path, api, metadata, filter_=None):
+    def upload_one(
+            self,
+            path: Union[str, pathlib.Path],
+            api: Cdstar,
+            metadata: dict,
+            filter_: Optional[Callable[[str], bool]] = None):
+        """Conditionally upload a file."""
         if filter_ and not filter_(path):
             return
 
@@ -112,30 +139,31 @@ class Catalog:
         file_ = cls(path)
         if file_.md5 not in self.entries:
             obj, md, bitstreams = file_.create_object(api, metadata)
-            res = {'objid': '%s' % obj.id, 'size': file_.size}
+            res = {'objid': f'{obj.id}', 'size': file_.size}
             res.update(md)
             res.update(bitstreams)
             self.entries[file_.md5] = res
 
-    def delete(self, api, objid=None, md5=None):
+    def delete(self, api: Cdstar, objid: Optional[str] = None, md5: Optional[str] = None) -> int:
+        """Delete an object from the catalog."""
         objs = set()
         if md5:
             objs.add((md5, self.entries[md5]['objid']))
         if objid:
-            for md5, d in self.entries.items():
+            for md5_, d in self.entries.items():
                 if d['objid'] == objid:
-                    objs.add((md5, objid))
+                    objs.add((md5_, objid))
                     break
         if objid is None and md5 is None:
             objs = set((md5, d['objid']) for md5, d in self.entries.items())
         c = 0
-        for md5, objid in objs:
+        for md5_, objid_ in objs:
             try:
-                obj = api.get_object(objid)
+                obj = api.get_object(objid_)
                 obj.delete()
-                del self.entries[md5]
+                del self.entries[md5_]
                 c += 1
-            except:  # noqa: E722; # pragma: no cover
+            except:  # noqa: E722; # pragma: no cover  # pylint: disable=bare-except
                 pass
         return c
 
@@ -143,6 +171,7 @@ class Catalog:
         self.write()
 
     def write(self):
+        """Write the catalog to disk."""
         ordered = OrderedDict()
         for md5 in sorted(self.entries.keys()):
             ordered[md5] = OrderedDict(sorted(self.entries[md5].items()))

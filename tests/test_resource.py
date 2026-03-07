@@ -3,7 +3,6 @@ import pytest
 from pycdstar.resource import Resource, Object, Bitstream, ACL
 
 
-
 def test_Resource(api_factory):
     with pytest.raises(NotImplementedError):
         Resource(api_factory())

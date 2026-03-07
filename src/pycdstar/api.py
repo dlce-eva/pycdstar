@@ -13,7 +13,7 @@ from pycdstar.exception import CdstarError
 log = logging.getLogger(__name__)
 
 
-class HasPath(Protocol):
+class HasPath(Protocol):  # pylint: disable=R0903,C0115
     path: str
 
 
@@ -86,8 +86,7 @@ class Cdstar:
             if not isinstance(assert_status, (list, tuple)):
                 assert_status = [assert_status]
             if status_code not in assert_status:
-                log.error(
-                    'got HTTP %s, expected HTTP %s' % (status_code, assert_status))
+                log.error('got HTTP %s, expected HTTP %s', status_code, assert_status)
                 log.error(res.text[:1000] if hasattr(res, 'text') else res)
                 raise CdstarError('Unexpected HTTP status code', res, status_code)
         return res
@@ -117,7 +116,7 @@ class Cdstar:
         :param index: Name of the index to search in (metadata|fulltext) or `None`.
         :return:
         """
-        params = dict(limit=limit, offset=offset)
+        params = {'limit': limit, 'offset': offset}
         if index:
             assert index in ['metadata', 'fulltext']
             params['indexselection'] = index

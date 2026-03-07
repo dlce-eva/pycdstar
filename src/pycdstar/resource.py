@@ -1,3 +1,4 @@
+import dataclasses
 import re
 import string
 from mimetypes import guess_type
@@ -131,7 +132,7 @@ class ACL(Resource):
 
 class Bitstream(Resource):
     """Bitstreams are binary blobs (aka files) associated with an object."""
-    NAME_PATTERN = re.compile(r'[%s0-9_\.]+$' % string.ascii_letters)
+    NAME_PATTERN = re.compile(r'[%s0-9_.]+$' % string.ascii_letters)
 
     def __init__(self, api, id=None, obj=None, **kw):
         """
@@ -179,6 +180,7 @@ class Bitstream(Resource):
         return Resource.read(self, json=False, stream=True).raw
 
 
+@dataclasses.dataclass
 class Result:
     def __init__(self, api, hit):
         self._api = api
