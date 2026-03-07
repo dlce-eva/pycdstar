@@ -2,10 +2,14 @@ import re
 import string
 from mimetypes import guess_type
 import json
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from pycdstar.api import Cdstar  # pragma: no cover
 
 
-class Resource(object):
-    def __init__(self, api, id=None, obj=None, **kw):
+class Resource:
+    def __init__(self, api: 'Cdstar', id: Optional[str] = None, obj=None, **kw):
         self.id = id
         self.obj = obj
         self._api = api
@@ -14,7 +18,8 @@ class Resource(object):
         if id is None:
             self.create(**kw)
 
-    def exists(self):
+    def exists(self) -> bool:
+        """Check, if the resource exists in the CDSTAR instance."""
         return self.read(assert_status=[200, 404], json=False).status_code != 404
 
     def create(self, **kw):
@@ -174,7 +179,7 @@ class Bitstream(Resource):
         return Resource.read(self, json=False, stream=True).raw
 
 
-class Result(object):
+class Result:
     def __init__(self, api, hit):
         self._api = api
         self.source = hit['source']

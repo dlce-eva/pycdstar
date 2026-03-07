@@ -1,6 +1,7 @@
 """A client for the REST API of cdstar instances."""
-import logging
 import json
+import logging
+from typing import Union, Any, Literal, Optional, Protocol
 
 import requests
 
@@ -12,13 +13,22 @@ from pycdstar.exception import CdstarError
 log = logging.getLogger(__name__)
 
 
-class Cdstar(object):
+class HasPath(Protocol):
+    path: str
+
+
+class Cdstar:
     """The API client.
 
     >>> api = Cdstar(service_url='http://example.org', user='user', password='pwd')
     >>> obj = api.get_object()
     """
-    def __init__(self, cfg=None, service_url=None, user=None, password=None):
+    def __init__(
+            self,
+            cfg: Optional[Config] = None,
+            service_url: Optional[str] = None,
+            user: Optional[str] = None,
+            password: Optional[str] = None):
         """
         Initialize a new client object.
 
@@ -28,22 +38,30 @@ class Cdstar(object):
         :param password: password for HTTP basic auth.
         :return:
         """
-        self.cfg = cfg or Config()
-        self.service_url = service_url or self.cfg.get('service', 'url')
+        self.cfg: Config = cfg or Config()
+        self.service_url: str = service_url or self.cfg.get('service', 'url')
         user = user or self.cfg.get('service', 'user', default=None)
         password = password or self.cfg.get('service', 'password', default=None)
         self.session = requests.Session()
         if user and password:
             self.session.auth = (user, password)
 
-    def url(self, obj):
+    def url(self, obj: Union[HasPath, str]) -> str:
+        """Compose a full URL representing the object."""
         res = self.service_url
         if res.endswith('/'):
             res = res[:-1]
         return res + getattr(obj, 'path', obj)
 
-    def _req(self, path, method='get', json=True, assert_status=200, **kw):
-        """Make a request to the API of an cdstar instance.
+    def _req(
+            self,
+            path: str,
+            method: Literal['get', 'head', 'post', 'delete'] = 'get',
+            json: bool = True,
+            assert_status: int = 200,
+            **kw,
+    ) -> Union[requests.Response, Any]:
+        """Make a request to the API of a cdstar instance.
 
         :param path: HTTP path.
         :param method: HTTP method.
@@ -74,7 +92,7 @@ class Cdstar(object):
                 raise CdstarError('Unexpected HTTP status code', res, status_code)
         return res
 
-    def get_object(self, uid=None):
+    def get_object(self, uid: Optional[str] = None) -> resource.Object:
         """
         Retrieve an existing or newly created object.
 
@@ -83,10 +101,13 @@ class Cdstar(object):
         """
         return resource.Object(self, uid)
 
-    # def get_collection(self, uid=None):
-    #     return resource.Object(self, uid, type='collection')
-
-    def search(self, query, limit=15, offset=0, index=None):
+    def search(
+            self,
+            query: Union[dict, str],
+            limit: int = 15,
+            offset: int = 0,
+            index: Optional[Literal['metadata', 'fulltext']] = None,
+    ) -> resource.SearchResults:
         """
         Query the search service.
 
@@ -111,12 +132,3 @@ class Cdstar(object):
             params=params,
             headers={'content-type': 'application/json'},
             data=json.dumps(query)))
-
-    # def landing(self):
-    #     pass
-
-    # def accesscontrol(self):
-    #     pass
-
-    # def dariah(self):
-    #     pass

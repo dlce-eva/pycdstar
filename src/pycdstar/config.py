@@ -1,29 +1,30 @@
-import os
+"""
+We allow configuration of a CDSTAR client via config file.
+"""
 import logging
+import pathlib
 from configparser import RawConfigParser
 
-from appdirs import AppDirs
+from platformdirs import PlatformDirs
+from clldutils.misc import NO_DEFAULT
 
-APP_DIRS = AppDirs('pycdstar')
-
-
-class NoDefault(object):
-    pass
-
-
-NO_DEFAULT = NoDefault()
+APP_DIRS = PlatformDirs('pycdstar')
 
 
 class Config(RawConfigParser):
+    """Config file for a CDSTAR client."""
     def __init__(self, **kw):
-        cfg_path = kw.pop('cfg', None) \
-            or os.path.join(APP_DIRS.user_config_dir, 'config.ini')
-        cfg_path = os.path.abspath(cfg_path)
+        cfg = kw.pop('cfg', None)
+        if cfg:
+            cfg_path = pathlib.Path(cfg)
+        else:  # pragma: no cover
+            cfg_path = pathlib.Path(APP_DIRS.user_config_dir) / 'config.ini'
+        cfg_path = cfg_path.resolve()
 
         RawConfigParser.__init__(self)
 
-        if os.path.exists(cfg_path):
-            assert os.path.isfile(cfg_path)
+        if cfg_path.exists():
+            assert cfg_path.is_file()
             self.read(cfg_path)
         else:
             self.add_section('service')
@@ -32,21 +33,21 @@ class Config(RawConfigParser):
             self.add_section('logging')
             self.set('logging', 'level', 'INFO')
 
-            config_dir = os.path.dirname(cfg_path)
-            if not os.path.exists(config_dir):
+            config_dir = cfg_path.parent
+            if not config_dir.exists():
                 try:
-                    os.makedirs(config_dir)
+                    config_dir.mkdir()
                 except OSError:  # pragma: no cover
                     # this happens when run on travis-ci, by a system user.
                     pass
-            if os.path.exists(config_dir):
-                with open(cfg_path, 'w') as fp:
+            if config_dir.exists():
+                with cfg_path.open('w') as fp:
                     self.write(fp)
         level = self.get('logging', 'level', default=None)
         if level:
             logging.basicConfig(level=getattr(logging, level))
 
-    def get(self, section, option, default=NO_DEFAULT):
+    def get(self, section, option, default=NO_DEFAULT, **_):
         if default is not NO_DEFAULT:
             if not self.has_option(section, option):
                 return default

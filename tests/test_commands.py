@@ -1,3 +1,4 @@
+import argparse
 from collections import defaultdict
 
 from pycdstar.resource import Object
@@ -18,45 +19,54 @@ def object(api_factory, **kw):
     return Object(api_factory(ret=Response(kw)))
 
 
-def test_metadata(api_factory, tmpdir):
-    from pycdstar.commands import c_metadata
+def test_metadata(api_factory, tmpdir, capsys):
+    from pycdstar.commands import metadata
 
-    res = c_metadata(api_factory(obj=object(api_factory)), args({'<URL>': 'a'}))
-    assert 'uid' in res
-    c_metadata(api_factory(obj=object(api_factory)), args({'<URL>': 'a', '<JSON>': '{}'}))
+    metadata.run(argparse.Namespace(
+        api=api_factory(obj=object(api_factory)), url='a', json=None))
+    out, _ = capsys.readouterr()
+    assert 'uid' in out
+    metadata.run(argparse.Namespace(
+        api=api_factory(obj=object(api_factory)), url='a', json='{}'))
 
     md = tmpdir.join('md.json')
     md.write_text('{"attr": "value"}', encoding='utf8')
-    assert c_metadata(
-        api_factory(obj=object(api_factory)), args({'<URL>': 'a', '<JSON>': str(md)})) is None
+    metadata.run(argparse.Namespace(
+        api=api_factory(obj=object(api_factory)), url='a', json=str(md)))
 
 
 def test_delete(api_factory):
-    from pycdstar.commands import c_delete
+    from pycdstar.commands import delete
 
-    assert c_delete(api_factory(obj=object(api_factory)), args({'<URL>': 'a'}), verbose=True)
+    delete.run(argparse.Namespace(
+        api=api_factory(obj=object(api_factory)), url='a', verbose=True))
 
 
-def test_ls(api_factory):
-    from pycdstar.commands import c_ls
+def test_ls(api_factory, capsys):
+    from pycdstar.commands import ls
 
-    res = c_ls(api_factory(obj=object(api_factory, bitstream=[])), args({'<URL>': 'a', '-s': True}))
-    assert len(list(res)) == 0
-    res = c_ls(
-        api_factory(obj=object(api_factory, bitstream=[defaultdict(lambda: 1)])),
-        args({'<URL>': 'a'}, default=True))
-    assert len(list(res)) == 1
+    ls.run(argparse.Namespace(
+        api=api_factory(obj=object(api_factory, bitstream=[])), url='a', s=False, t=True, r=False))
+    ls.run(argparse.Namespace(
+        api=api_factory(obj=object(api_factory, bitstream=[])), url='a', s=False, t=False, r=True))
+    ls.run(argparse.Namespace(
+        api=api_factory(obj=object(api_factory, bitstream=[])), url='a', s=True, t=False, r=False))
+    out, _ = capsys.readouterr()
+    assert not out
+    ls.run(argparse.Namespace(
+        api=api_factory(obj=object(api_factory, bitstream=[defaultdict(lambda: 1)])),
+        url='a', s=False, t=False, r=False, verbose=False))
+    out, _ = capsys.readouterr()
+    assert out
 
 
 def test_create(api_factory):
-    from pycdstar.commands import c_create
+    from pycdstar.commands import create
 
-    res = list(c_create(
-        api_factory(),
-        args({
-            '<DIR>': '.',
-            '--metadata': '{}',
-            '--include': '*.py',
-            '--exclude': '*.pyc'}),
+    create.run(argparse.Namespace(
+        api=api_factory(),
+        dir='.',
+        metadata='{}',
+        include='*.py',
+        exclude='*.pyc',
         verbose=True))
-    assert res

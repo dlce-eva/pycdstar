@@ -1,9 +1,15 @@
-import os
+"""
+A CDSTAR catalog is a local registry of the objects uploaded to a CDSTAR instance.
+"""
 from collections import OrderedDict, defaultdict
 import json
 from mimetypes import guess_type
 import pathlib
+from typing import Union, Any
 
+from clldutils.path import walk
+
+from pycdstar.api import Cdstar
 from pycdstar.media import File, Video, Image
 
 
@@ -17,15 +23,19 @@ def iter_files(path):
     if path.is_file():
         yield path
     elif path.is_dir():
-        for dirname, subdirs, files in os.walk(str(path)):
-            for fname in files:
-                yield pathlib.Path(dirname) / fname
+        yield from walk(path, mode='files')
 
 
-class Catalog(object):
-    def __init__(self, path):
-        self.path = pathlib.Path(path)
-        self.entries = {}
+class Catalog:
+    """
+    A catalog storing CDSTAR bitstream metadata.
+
+    To be used as updateable context when uploading objects.
+    """
+    def __init__(self, path: Union[str, pathlib.Path]):
+        self.path: pathlib.Path = pathlib.Path(path)
+        # Entries in the catalog are keyed by md5 sum of the corresponding file.
+        self.entries: dict[str, Any] = {}
         if self.path.exists():
             with self.path.open(encoding='utf8') as fp:
                 self.entries = json.load(fp)
@@ -37,15 +47,19 @@ class Catalog(object):
         return len(self.entries)
 
     @property
-    def size(self):
+    def size(self) -> int:
+        """
+        Accumulated filesizes of the bitstreams recorded in the catalog.
+        """
         return sum(d['size'] for d in self.entries.values())
 
     @property
-    def size_h(self):
+    def size_h(self) -> str:
         return File.format_size(self.size)
 
     def stat(self, path, verbose=False):
-        stats = defaultdict(list)
+        """Prints a report about the upload status of files in a directory."""
+        stats: dict[str, list[tuple[pathlib.Path, int, bool]]] = defaultdict(list)
         for fname in iter_files(path):
             self.update_stat(fname, stats)
         insize, infiles, indistinct = 0, 0, 0
@@ -67,18 +81,20 @@ class Catalog(object):
                     outsize += size
                     outfiles += 1
 
-        print('uploaded: {0} in {1} files ({2} distinct)'.format(
-            File.format_size(insize), infiles, indistinct))
-        print('todo: {0} in {1} files ({2} distinct)'.format(
-            File.format_size(outsize), outfiles, outdistinct))
+        print(f'uploaded: {File.format_size(insize)} in {infiles} files ({indistinct} distinct)')
+        print(f'todo: {File.format_size(outsize)} in {outfiles} files ({outdistinct} distinct)')
         return stats
 
-    def update_stat(self, path, stats):
+    def update_stat(
+            self,
+            path: pathlib.Path,
+            stats: dict[str, list[tuple[pathlib.Path, int, bool]]]) -> None:
+        """Add stats for the file identified by path."""
         file_ = File(path)
         md5 = file_.md5
         stats[md5].append((file_.path, file_.size, md5 in self.entries))
 
-    def upload(self, path, api, metadata, filter_=None):
+    def upload(self, path, api: Cdstar, metadata, filter_=None):
         start = len(self)
         for fname in iter_files(path):
             self.upload_one(fname, api, metadata, filter_=filter_)
@@ -129,7 +145,7 @@ class Catalog(object):
     def write(self):
         ordered = OrderedDict()
         for md5 in sorted(self.entries.keys()):
-            ordered[md5] = OrderedDict([i for i in sorted(self.entries[md5].items())])
+            ordered[md5] = OrderedDict(sorted(self.entries[md5].items()))
 
         with self.path.open(mode='w', encoding='utf8') as fp:
             return json.dump(ordered, fp, indent=4)
