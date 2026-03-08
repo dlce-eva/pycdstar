@@ -26,7 +26,8 @@ if TYPE_CHECKING:
 log = logging.getLogger(pycdstar.__name__)
 
 
-def ensure_unicode(s):
+def ensure_unicode(s: Union[bytes, str]) -> str:
+    """Cast to str."""
     if not isinstance(s, str):  # pragma: no cover
         s = s.decode('utf8')
     return s
@@ -34,12 +35,12 @@ def ensure_unicode(s):
 
 class File:
     """Any local file."""
-    def __init__(
+    def __init__(  # pylint: disable=R0913,R0917
             self,
             path: Union[str, pathlib.Path],
             temporary: bool = False,
             name: Optional[str] = None,
-            type: str = 'original',
+            type: str = 'original',  # pylint: disable=W0622
             mimetype: Optional[str] = None):
         path = pathlib.Path(path)
         assert path.exists() and path.is_file()
@@ -118,7 +119,7 @@ class File:
         :param api:
         :return:
         """
-        metadata = {k: v for k, v in (metadata or {}).items()}
+        metadata = dict((metadata or {}).items())
         metadata.setdefault('creator', f'{pycdstar.__name__} {pycdstar.__version__}')
         metadata.setdefault('path', f'{self.path}')
         metadata.update(self.add_metadata())
@@ -215,6 +216,7 @@ class Video(File):
 
     @property
     def duration(self) -> float:
+        """The video duration in seconds."""
         if self._props is None:
             self._props = self._ffprobe()
         return float(self._props['streams'][0]['duration'])

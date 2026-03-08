@@ -14,9 +14,14 @@ tox -r
 python test_integration.py
 ```
 
-- Make sure flake8 passes::
+- Make sure flake8 passes:
 ```shell
 flake8 src/
+```
+
+- Make sure pylint passes with a score of 10:
+```shell
+pylint src/
 ```
 
 - Change version to the new version number in

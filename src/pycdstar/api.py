@@ -24,7 +24,7 @@ class Cdstar:
     >>> api = Cdstar(service_url='http://example.org', user='user', password='pwd')
     >>> obj = api.get_object()
     """
-    def __init__(
+    def __init__(  # pylint: disable=R0913,R0917
             self,
             cfg: Optional[Config] = None,
             service_url: Optional[str] = None,

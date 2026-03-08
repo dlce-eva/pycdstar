@@ -14,7 +14,12 @@ if TYPE_CHECKING:
 
 class Resource:
     """A generic CDSTAR resource."""
-    def __init__(self, api: 'Cdstar', id: Optional[str] = None, obj=None, **kw):
+    def __init__(
+            self,
+            api: 'Cdstar',
+            id: Optional[str] = None,  # pylint: disable=W0622
+            obj=None,
+            **kw):
         """Instantiating a resource with id = None will call its `create` method."""
         self.id = id
         self.obj = obj
@@ -64,7 +69,7 @@ class Resource:
         return path
 
 
-class Object(Resource):
+class Object(Resource):  # pylint: disable=W0223
     """CDSTAR objects are bags of metadata plus associated bitstreams."""
     def create(self, **_):
         res = self._api._req(self.path, method='post', assert_status=201)  # pylint: disable=W0212
@@ -111,6 +116,7 @@ class Object(Resource):
 
 
 class Metadata(Resource):
+    """Metadata is a sub-resource of an Object."""
     @property
     def service_name(self):
         return 'metadata'
@@ -130,7 +136,8 @@ class Metadata(Resource):
         return self._cu('put', **kw)
 
 
-class ACL(Resource):
+class ACL(Resource):  # pylint: disable=W0223
+    """An Access Control List is a sub-resource of an Object."""
     @property
     def service_name(self):
         return 'accesscontrol'
