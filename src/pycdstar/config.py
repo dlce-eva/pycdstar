@@ -41,7 +41,7 @@ class Config(RawConfigParser):
                     # this happens when run on travis-ci, by a system user.
                     pass
             if config_dir.exists():
-                with cfg_path.open('w') as fp:
+                with cfg_path.open('w', encoding='utf8') as fp:
                     self.write(fp)
         level = self.get('logging', 'level', default=None)
         if level:

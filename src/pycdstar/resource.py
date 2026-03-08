@@ -34,7 +34,7 @@ class Resource:
 
     def read(self, **kw):
         """Resources are managed via REST CRUD methods."""
-        return self._api._req(self.path, **kw)
+        return self._api._req(self.path, **kw)  # pylint: disable=W0212
 
     def update(self, **_):
         """Resources are managed via REST CRUD methods."""
@@ -43,7 +43,8 @@ class Resource:
     def delete(self):
         """Resources are managed via REST CRUD methods."""
         assert self.id
-        return self._api._req(self.path, method='delete', assert_status=204, json=False)
+        return self._api._req(  # pylint: disable=W0212
+            self.path, method='delete', assert_status=204, json=False)
 
     @property
     def service_name(self) -> str:
@@ -66,7 +67,7 @@ class Resource:
 class Object(Resource):
     """CDSTAR objects are bags of metadata plus associated bitstreams."""
     def create(self, **_):
-        res = self._api._req(self.path, method='post', assert_status=201)
+        res = self._api._req(self.path, method='post', assert_status=201)  # pylint: disable=W0212
         self.id = res['uid']
 
     def read(self, **_) -> dict:
@@ -115,7 +116,7 @@ class Metadata(Resource):
         return 'metadata'
 
     def _cu(self, method: 'MethodType', **kw):
-        return self._api._req(
+        return self._api._req(  # pylint: disable=W0212
             self.path,
             method=method,
             assert_status=201,
@@ -139,22 +140,22 @@ class ACL(Resource):
         for permission in ['manage', 'read', 'write']:
             if permission in kw:
                 acl[permission] = kw[permission]
-        _kw = dict(
+        return self._api._req(  # pylint: disable=W0212
+            self.path,
             method='put',
             assert_status=200,
             data=json.dumps(acl),
             headers={'content-type': 'application/json'})
-        return self._api._req(self.path, **_kw)
 
 
 class Bitstream(Resource):
     """Bitstreams are binary blobs (aka files) associated with an object."""
-    NAME_PATTERN = re.compile(r'[%s0-9_.]+$' % string.ascii_letters)
+    NAME_PATTERN = re.compile(r'[%s0-9_.]+$' % string.ascii_letters)  # pylint: disable=C0209
 
     def __init__(
             self,
             api: 'Cdstar',
-            id: Optional[str] = None,
+            id: Optional[str] = None,  # pylint: disable=W0622
             obj: Object = None,
             **kw):
         """
@@ -199,7 +200,7 @@ class Bitstream(Resource):
         return self._cu('put', **kw)
 
     def read(self, **_):
-        return Resource.read(self, json=False, stream=True).raw
+        return Resource.read(self, json=False, stream=True).content
 
 
 @dataclasses.dataclass

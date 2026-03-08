@@ -29,7 +29,8 @@ class Cdstar:
             cfg: Optional[Config] = None,
             service_url: Optional[str] = None,
             user: Optional[str] = None,
-            password: Optional[str] = None):
+            password: Optional[str] = None,
+            debug: bool = False):
         """
         Initialize a new client object.
 
@@ -46,6 +47,7 @@ class Cdstar:
         self.session = requests.Session()
         if user and password:
             self.session.auth = (user, password)
+        self._debug = debug
 
     def url(self, obj: Union[HasPath, str]) -> str:
         """Compose a full URL representing the object."""
@@ -73,6 +75,8 @@ class Cdstar:
         :return: The return value of the function of the requests library or a decoded \
         JSON object/array.
         """
+        if self._debug:  # pragma: no cover
+            print(f'{method.upper()} {self.url(path)}')
         method = getattr(self.session, method.lower())
         res = method(self.url(path), **kw)
 

@@ -9,6 +9,11 @@ Clone cdstar-community/pycdstar and switch to the master branch. Then:
 tox -r
 ```
 
+- Do integration test running:
+```shell
+python test_integration.py
+```
+
 - Make sure flake8 passes::
 ```shell
 flake8 src/
