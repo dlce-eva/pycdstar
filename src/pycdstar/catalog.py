@@ -16,6 +16,7 @@ from pycdstar.media import File, Video, Image
 
 @dataclasses.dataclass
 class Stats:
+    """Bag of stats to measure upload progress."""
     size: int = 0
     files: int = 0
     distinct: int = 0

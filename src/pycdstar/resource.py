@@ -1,16 +1,21 @@
-import dataclasses
+"""
+OO wrappers for CDSTAR resources.
+"""
 import re
 import string
 from mimetypes import guess_type
 import json
-from typing import TYPE_CHECKING, Optional
+import dataclasses
+from typing import TYPE_CHECKING, Optional, Any, Union
 
 if TYPE_CHECKING:
-    from pycdstar.api import Cdstar  # pragma: no cover
+    from pycdstar.api import Cdstar, MethodType  # pragma: no cover
 
 
 class Resource:
+    """A generic CDSTAR resource."""
     def __init__(self, api: 'Cdstar', id: Optional[str] = None, obj=None, **kw):
+        """Instantiating a resource with id = None will call its `create` method."""
         self.id = id
         self.obj = obj
         self._api = api
@@ -23,53 +28,62 @@ class Resource:
         """Check, if the resource exists in the CDSTAR instance."""
         return self.read(assert_status=[200, 404], json=False).status_code != 404
 
-    def create(self, **kw):
+    def create(self, **_):
+        """Resources are managed via REST CRUD methods."""
         raise NotImplementedError
 
     def read(self, **kw):
+        """Resources are managed via REST CRUD methods."""
         return self._api._req(self.path, **kw)
 
-    def update(self, **kw):
+    def update(self, **_):
+        """Resources are managed via REST CRUD methods."""
         raise NotImplementedError
 
     def delete(self):
+        """Resources are managed via REST CRUD methods."""
         assert self.id
-        return self._api._req(
-            self.path, method='delete', assert_status=204, json=False)
+        return self._api._req(self.path, method='delete', assert_status=204, json=False)
 
     @property
-    def service_name(self):
-        return '%ss' % self.__class__.__name__.lower()
+    def service_name(self) -> str:
+        """The path component identifying the service serving the resource."""
+        return f'{self.__class__.__name__.lower()}s'
 
     @property
-    def path(self):
-        path = '/%s/' % self.service_name
+    def path(self) -> str:
+        """Full URL path to the resource instance."""
+        path = f'/{self.service_name}/'
         if self.obj:
-            path += '%s' % getattr(self.obj, 'id', self.obj)
+            path += f"{getattr(self.obj, 'id', self.obj)}"
         if self.id:
             if not path.endswith('/'):
                 path += '/'
-            path += '%s' % self.id
+            path += f'{self.id}'
         return path
 
 
 class Object(Resource):
-    def create(self, **kw):
+    """CDSTAR objects are bags of metadata plus associated bitstreams."""
+    def create(self, **_):
         res = self._api._req(self.path, method='post', assert_status=201)
         self.id = res['uid']
 
-    def read(self):
+    def read(self, **_) -> dict:
         self._properties = Resource.read(self)
         return self._properties
 
     @property
-    def metadata(self):
+    def metadata(self) -> Optional['Metadata']:
+        """The metadata of an object lives in an associated resource."""
         md = Metadata(self._api, id=self.id)
         if md.exists():
             return md
+        return None  # pragma: no cover
 
     @metadata.setter
     def metadata(self, value):
+        """Setting the metadata means updating the metadata resource."""
         md = Metadata(self._api, id=self.id)
         if md.exists():
             md.update(metadata=value)
@@ -77,7 +91,8 @@ class Object(Resource):
             md.create(metadata=value)
 
     @property
-    def bitstreams(self):
+    def bitstreams(self) -> list['Bitstream']:
+        """The bitstreams associated with the object."""
         if not self._properties:
             self.read()
         return [
@@ -85,10 +100,12 @@ class Object(Resource):
             for spec in self._properties['bitstream']]
 
     def add_bitstream(self, **kw):
+        """Create a new bitstream associated with the object."""
         return Bitstream(self._api, obj=self, **kw)
 
     @property
-    def acl(self):
+    def acl(self) -> 'ACL':
+        """The Access Control List of the object."""
         return ACL(self._api, id=self.id)
 
 
@@ -97,13 +114,13 @@ class Metadata(Resource):
     def service_name(self):
         return 'metadata'
 
-    def _cu(self, method, **kw):
-        _kw = dict(
+    def _cu(self, method: 'MethodType', **kw):
+        return self._api._req(
+            self.path,
             method=method,
             assert_status=201,
             data=json.dumps(kw['metadata']),
             headers={'content-type': 'application/json'})
-        return self._api._req(self.path, **_kw)
 
     def create(self, **kw):
         return self._cu('post', **kw)
@@ -134,7 +151,12 @@ class Bitstream(Resource):
     """Bitstreams are binary blobs (aka files) associated with an object."""
     NAME_PATTERN = re.compile(r'[%s0-9_.]+$' % string.ascii_letters)
 
-    def __init__(self, api, id=None, obj=None, **kw):
+    def __init__(
+            self,
+            api: 'Cdstar',
+            id: Optional[str] = None,
+            obj: Object = None,
+            **kw):
         """
         Retrieve an existing or create a new Bitstream.
 
@@ -159,12 +181,12 @@ class Bitstream(Resource):
         if not content_type:
             content_type = 'application/octet-stream'  # pragma: no cover
         with open(kw['fname'], 'rb') as f:
-            _kw = dict(
+            _kw = dict(  # pylint: disable=R1735
                 method=method,
                 data=f,
                 assert_status=201,
                 headers={'content-type': content_type})
-            return self._api._req(self.path, **_kw)
+            return self._api._req(self.path, **_kw)  # pylint: disable=W0212
 
     def create(self, **kw):
         if 'name' in kw:
@@ -176,24 +198,31 @@ class Bitstream(Resource):
     def update(self, **kw):
         return self._cu('put', **kw)
 
-    def read(self):
+    def read(self, **_):
         return Resource.read(self, json=False, stream=True).raw
 
 
 @dataclasses.dataclass
 class Result:
-    def __init__(self, api, hit):
-        self._api = api
-        self.source = hit['source']
-        self.score = hit['score']
-        self.resource = Object(api, hit['uid'])
-        if hit['type'] == 'fulltext':
-            self.resource = Bitstream(api, id=hit['bitstreamid'], obj=self.resource)
+    """OO wrapper for a JSON search result."""
+    source: str
+    score: float
+    resource: Union[Object, Bitstream]
+    _api: 'Cdstar'
+
+    @classmethod
+    def from_hit(cls, api, hit: dict[str, Any]):
+        """Initialize from JSON hit spec."""
+        resource = Object(api, hit['uid'])
+        if hit['type'] == 'fulltext':  # type is metadata or fulltext.
+            resource = Bitstream(api, id=hit['bitstreamid'], obj=resource)
+        return cls(_api=api, source=hit['source'], score=hit['score'], resource=resource)
 
 
 class SearchResults(list):
+    """OO wrapper for JSON search results."""
     def __init__(self, api, res):
         self._api = api
-        self.maxscore = res['maxscore']
-        self.hitcount = res['hitcount']
-        list.__init__(self, [Result(api, hit) for hit in res['hits']])
+        self.maxscore: float = res['maxscore']
+        self.hitcount: int = res['hitcount']
+        list.__init__(self, [Result.from_hit(api, hit) for hit in res['hits']])

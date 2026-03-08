@@ -11,6 +11,7 @@ from pycdstar.exception import CdstarError
 
 
 log = logging.getLogger(__name__)
+MethodType = Literal['get', 'head', 'post', 'delete', 'put']
 
 
 class HasPath(Protocol):  # pylint: disable=R0903,C0115
@@ -56,8 +57,8 @@ class Cdstar:
     def _req(
             self,
             path: str,
-            method: Literal['get', 'head', 'post', 'delete'] = 'get',
-            json: bool = True,
+            method: MethodType = 'get',
+            json: bool = True,  # pylint: disable=W0621
             assert_status: int = 200,
             **kw,
     ) -> Union[requests.Response, Any]:
