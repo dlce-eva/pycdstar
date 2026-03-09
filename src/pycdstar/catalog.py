@@ -9,6 +9,7 @@ import dataclasses
 from typing import Union, Any, Optional, Callable
 
 from clldutils.path import walk
+from clldutils.misc import format_size
 
 from pycdstar.api import Cdstar
 from pycdstar.media import File, Video, Image
@@ -22,7 +23,7 @@ class Stats:
     distinct: int = 0
 
     def __str__(self):
-        return f'{File.format_size(self.size)} in {self.files} files ({self.distinct} distinct)'
+        return f'{format_size(self.size)} in {self.files} files ({self.distinct} distinct)'
 
 
 def filter_hidden(p: pathlib.Path) -> bool:
@@ -70,7 +71,7 @@ class Catalog:
     @property
     def size_h(self) -> str:
         """Human-readable size of the catalog."""
-        return File.format_size(self.size)
+        return format_size(self.size)
 
     def stat(self, path, verbose=False):
         """Prints a report about the upload status of files in a directory."""

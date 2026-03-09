@@ -15,6 +15,7 @@ from mimetypes import guess_type
 
 from unidecode import unidecode
 from clldutils.path import ensure_cmd
+from clldutils.misc import format_size
 
 import pycdstar
 from pycdstar.resource import Bitstream, Object
@@ -80,20 +81,10 @@ class File:
         """The filesize in bytes."""
         return self.path.stat().st_size
 
-    @staticmethod
-    def format_size(num) -> str:
-        """A filesize as human-readable number."""
-        suffix = 'B'
-        for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
-            if abs(num) < 1024.0:
-                return f"{num:3.1f}{unit}{suffix}"
-            num /= 1024.0
-        return f"{num:.1f}Yi{suffix}"
-
     @property
     def size_h(self) -> str:
         """The filesize as human-readable number."""
-        return self.format_size(self.size)
+        return format_size(self.size)
 
     def add_bitstreams(self) -> list['File']:
         """

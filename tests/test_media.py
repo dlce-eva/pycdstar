@@ -55,8 +55,7 @@ def test_clean_name(media_file):
 
 def test_size(media_file):
     assert media_file.size == 4
-    assert media_file.size_h == '4.0B'
-    assert media_file.format_size(1000000000000000000000000000) == '827.2YiB'
+    assert media_file.size_h == '4.0bytes'
 
 
 def test_md5(media_file):

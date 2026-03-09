@@ -46,4 +46,4 @@ def test_misc(catalog):
     catalog.stat(__file__, verbose=True)
     assert len(catalog) == 0
     assert catalog.size == 0
-    assert catalog.size_h == '0.0B'
+    assert catalog.size_h == '0.0bytes'
