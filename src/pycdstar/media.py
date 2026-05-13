@@ -180,7 +180,10 @@ class Image(File):
         res = ensure_unicode(subprocess.check_output([ensure_cmd('identify'), str(self.path)]))
         assert res.startswith(str(self.path))
         dim = res.replace(str(self.path), '').strip().split()[1]
-        return dict(zip(['height', 'width'], map(int, dim.split('x'))))
+        try:
+            return dict(zip(['height', 'width'], map(int, dim.split('x'))))
+        except ValueError:  # pragma: no cover
+            return {}
 
     def add_bitstreams(self) -> list[File]:
         return [
