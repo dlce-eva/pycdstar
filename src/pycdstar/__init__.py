@@ -1,4 +1,4 @@
 """
 Functionality to interface with CDSTAR instances.
 """
-__version__ = "1.2.2"
+__version__ = "1.2.3.dev0"
