@@ -1,7 +1,7 @@
 # Changes
 
 
-## unreleased
+## [v1.2.2] - 2026-05-14
 
 - Fix bug whereby failed extraction of metadata would make item creation fail.
 
